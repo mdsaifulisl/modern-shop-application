@@ -57,7 +57,7 @@ const handleAddToCart = () => {
     image: product.image,
   };
 
-  addToCart(cartItem, selectedSize);
+  addToCart(cartItem, selectedSize, quantity);
   setSelectedSize("");
   console.log("Cart Item:", cartItem); // <-- should log
   alert(`Added ${cartItem.quantity} item(s) of size ${cartItem.size} to cart!`);
@@ -78,7 +78,7 @@ const handleAddToCartNavigateChackout = () => {
     image: product.image,
   };
 
-  addToCart(cartItem, selectedSize);
+  addToCart(cartItem, selectedSize, quantity);
   setSelectedSize("");
    navigate("/checkout");
   console.log("Cart Item:", cartItem); // <-- should log
@@ -88,7 +88,7 @@ const handleAddToCartNavigateChackout = () => {
     <section className="product-details section">
       <div className="container">
         <div className="row g-4 align-items-center">
-          {/* Image Zoom */}
+          {/* Image Zoom */} 
           <div className="col-md-6">
             <div
               className="zoom-image"

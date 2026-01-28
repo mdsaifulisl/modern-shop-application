@@ -12,21 +12,21 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product, selectedSize) => {
+  const addToCart = (cartItem, selectedSize, quantity) => {
     setCartItems((prevItems) => {
       // Check for SAME id AND SAME size
       const existingItem = prevItems.find(
-        (item) => item.id === product.id && item.size === selectedSize
+        (item) => item.id === cartItem.id && item.size === selectedSize
       );
 
       if (existingItem) {
         return prevItems.map((item) =>
-          item.id === product.id && item.size === selectedSize
-            ? { ...item, quantity: item.quantity + 1 }
+          item.id === cartItem.id && item.size === selectedSize
+            ? { ...item, quantity: item.quantity + (quantity || 1) }
             : item
         );
       }
-      return [...prevItems, { ...product, size: selectedSize, quantity: 1 }];
+      return [...prevItems, { ...cartItem, size: selectedSize, quantity: quantity || 1 }];
     });
   };
 
