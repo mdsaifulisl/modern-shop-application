@@ -1,81 +1,82 @@
-// React import Hooks
 import { useState, useEffect } from "react";
-// Bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
-// import css file
 import "../../components/dashboard-components/deshbord.css";
-// import components
+
+// Components
 import Sidebar from "../../components/dashboard-components/Sidebars";
 import ContantHead from "../../components/dashboard-components/Contant-head";
 import DeshbordHome from "../../components/dashboard-components/DeshbordHome";
 import OrderList from "../../components/dashboard-components/OrderList";
 import ProductList from "../../components/dashboard-components/ProductList";
 import AddSlider from "../../components/dashboard-components/AddSlider";
+import Settings from "../../components/dashboard-components/Settings";
 
+function Dashboard() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(1);
 
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-function Dashbord() {
-  // Hendel Sidebar
-  const [sidebar, setSidebar] = useState(false);
-
-  // Hendel Contant
-  const [contant, setContant] = useState(1);
-
-  const handleSidebar = () => {
-    setSidebar((prev) => !prev);
-  };
-
+  // Auto-close sidebar on scroll (Mobile Optimization)
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 100) {
-        setSidebar((prev) => (prev ? false : prev));
+      if (window.scrollY > 50 && isSidebarOpen) {
+        setIsSidebarOpen(false);
       }
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isSidebarOpen]);
+
+  // Map content for cleaner rendering
+  const renderContent = () => {
+    switch (activeTab) {
+      case 1: return <DeshbordHome />;
+      case 2: return <OrderList />;
+      case 3: return <ProductList />;
+      case 4: return <AddSlider />;
+      case 5: return <Settings />;
+      default: return <DeshbordHome />;
+    }
+  };
 
   return (
-    <>
-      <div className="dashbord-bg">
-        <div className="container py-5">
-          <div className="dashboard shadow-lg rounded-3 pb-5">
-            <div className="row g-2 position-relative">
-              <div
-                className={`col-md-2 m-0 dashboard-sidebar-mobile ${
-                  sidebar ? "active" : ""
-                }`}
-              >
-                <Sidebar
-                  handleSidebar={handleSidebar}
-                  contant={contant}
-                  setContant={setContant}
-                />
-              </div>
+    <div className="dashboard-wrapper bg-light min-vh-100">
+      <div className="container-fluid p-0">
+        <div className="row g-0">
+          
+          {/* Sidebar Overlay for Mobile */}
+          {isSidebarOpen && (
+            <div 
+              className="sidebar-overlay d-lg-none" 
+              onClick={toggleSidebar}
+            />
+          )}
 
-              <div className="col-lg-10 col-12 m-0 p-0">
-                {/* Changed h-100 to min-vh-100 to allow vertical growth */}
-                <div className="dashboard-content dashboard-content-bg w-100 p-4 pt-0 min-vh-100">
-                  <div className="dashboard-main d-flex flex-column h-100">
-                    <ContantHead handleSidebar={handleSidebar} />
+          {/* Sidebar Column */}
+          <div className={`col-auto dashboard-sidebar-container ${isSidebarOpen ? "show bg-white" : ""}`}>
+            <Sidebar
+              handleSidebar={toggleSidebar}
+              contant={activeTab}
+              setContant={setActiveTab}
+            />
+          </div>
 
-                    {/* Content Area Container */}
-                    <div className="flex-grow-1 mt-3">
-                      {contant === 1 && <DeshbordHome />}
-                      {contant === 2 && <OrderList />}
-                      {contant === 3 && <ProductList />}
-                      {contant === 4 && <AddSlider />}
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {/* Main Content Column */}
+          <div className="col">
+            <div className="dashboard-content-area p-3 p-md-4">
+              <ContantHead handleSidebar={toggleSidebar} />
+              
+              <main className="content-body mt-4 animate-fade-in">
+                {renderContent()}
+              </main>
             </div>
           </div>
+
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
-export default Dashbord;
+export default Dashboard;

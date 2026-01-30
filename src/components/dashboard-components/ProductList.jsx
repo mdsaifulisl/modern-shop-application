@@ -1,39 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { FaEdit, FaTrash, FaPlus, FaSearch, FaBoxOpen } from "react-icons/fa";
 
 const ProductList = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Product A",
-      category: "Apparel",
-      price: "$25",
-      stock: 15,
-      description: "High-quality cotton t-shirt with a modern fit.",
-      sizes: ["S", "M", "L", "XL"],
-      image:
-        "https://th.bing.com/th/id/OIP.kDFGc5EYeX7z7sSxHp0hggAAAA?w=243&h=180&c=7&r=0&o=7&pid=1.7&rm=3",
-    },
-    {
-      id: 2,
-      name: "Product B",
-      category: "Accessories",
-      price: "$70",
-      stock: 5,
-      description: "Durable leather belt with premium buckle.",
-      sizes: ["One Size"],
-      image:
-        "https://th.bing.com/th/id/OIP.kDFGc5EYeX7z7sSxHp0hggAAAA?w=243&h=180&c=7&r=0&o=7&pid=1.7&rm=3",
-    },
-  ]);
+  const [products, setProducts] = useState(() => {
+    const saved = localStorage.getItem("inventory_data");
+    return saved
+      ? JSON.parse(saved)
+      : [
+          {
+            id: 1,
+            name: "Premium Cotton Tee",
+            category: "Apparel",
+            price: "25",
+            stock: 15,
+            description: "High-quality cotton t-shirt with a modern fit.",
+            sizes: ["S", "M", "L"],
+            image:
+              "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200",
+          },
+        ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("inventory_data", JSON.stringify(products));
+  }, [products]);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  // New Product State
-  const [newProduct, setNewProduct] = useState({
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [modalMode, setModalMode] = useState(null);
+  const [formData, setFormData] = useState({
     name: "",
-    category: "",
+    category: "Apparel",
     price: "",
     stock: 0,
     description: "",
@@ -41,364 +38,376 @@ const ProductList = () => {
     image: "https://via.placeholder.com/150",
   });
 
+  const categories = ["Apparel", "Accessories", "Electronics", "Footwear"];
   const allAvailableSizes = ["S", "M", "L", "XL", "XXL", "One Size"];
 
-  const handleSizeToggle = (size, mode) => {
-    if (mode === "add") {
-      const updatedSizes = newProduct.sizes.includes(size)
-        ? newProduct.sizes.filter((s) => s !== size)
-        : [...newProduct.sizes, size];
-      setNewProduct({ ...newProduct, sizes: updatedSizes });
+  // --- NEW LOGIC: Form Validation ---
+  const isFormInvalid =
+    !formData.name.trim() || !formData.price || formData.sizes.length === 0;
+
+  const openModal = (mode, product = null) => {
+    setModalMode(mode);
+    if (mode === "edit" && product) {
+      setFormData({ ...product });
     } else {
-      const updatedSizes = selectedProduct.sizes.includes(size)
-        ? selectedProduct.sizes.filter((s) => s !== size)
-        : [...selectedProduct.sizes, size];
-      setSelectedProduct({ ...selectedProduct, sizes: updatedSizes });
+      setFormData({
+        name: "",
+        category: "Apparel",
+        price: "",
+        stock: 0,
+        description: "",
+        sizes: [],
+        image: "https://via.placeholder.com/150",
+      });
     }
   };
 
-  const handleImageChange = (e, mode) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (mode === "add")
-          setNewProduct({ ...newProduct, image: reader.result });
-        else setSelectedProduct({ ...selectedProduct, image: reader.result });
-      };
-      reader.readAsDataURL(file);
+  const handleSizeToggle = (size) => {
+    setFormData((prev) => ({
+      ...prev,
+      sizes: prev.sizes.includes(size)
+        ? prev.sizes.filter((s) => s !== size)
+        : [...prev.sizes, size],
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (isFormInvalid) return; // Guard clause
+    if (modalMode === "add") {
+      setProducts([...products, { ...formData, id: Date.now() }]);
+    } else {
+      setProducts(products.map((p) => (p.id === formData.id ? formData : p)));
     }
+    setModalMode(null);
   };
 
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    const productToAdd = {
-      ...newProduct,
-      id: Date.now(),
-      price: `$${newProduct.price}`,
-    };
-    setProducts([...products, productToAdd]);
-    setIsAddModalOpen(false);
-    setNewProduct({
-      name: "",
-      category: "Apparel",
-      price: "",
-      stock: 0,
-      description: "",
-      sizes: [],
-      image: "https://via.placeholder.com/150",
-    });
-  };
-
-  const handleUpdate = (e) => {
-    e.preventDefault();
-    setProducts(
-      products.map((p) => (p.id === selectedProduct.id ? selectedProduct : p)),
-    );
-    setSelectedProduct(null);
-  };
-
-  const filteredProducts = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = p.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      filterCategory === "All" || p.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="container mt-4">
+    <div
+      className="container-fluid py-4 animate-fade-in"
+      style={{ backgroundColor: "var(--d-main-bg-color)", minHeight: "100vh" }}
+    >
+      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold mb-0 text-dark">Products</h2>
+        <h5 className="m-0 text-color">Inventory Management</h5>
         <button
-          className="btn btn-primary shadow-sm"
-          onClick={() => setIsAddModalOpen(true)}
+          className="btn d-flex align-items-center gap-2 text-white shadow-sm"
+          style={{
+            backgroundColor: "var(--green-color)",
+            borderRadius: "10px",
+          }}
+          onClick={() => openModal("add")}
         >
-          + Add Product
+          <FaPlus /> Add Product
         </button>
       </div>
 
-      <div className="mb-4">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      {/* Filters */}
+      <div className="row g-3 mb-4">
+        <div className="col-md-8">
+          <div className="input-group dashboard-card shadow-sm border-0">
+            <span className="input-group-text bg-white border-0 ps-3">
+              <FaSearch className="d-link-color" />
+            </span>
+            <input
+              type="text"
+              className="form-control border-0 py-2"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="col-md-4">
+          <select
+            className="form-select border-0 shadow-sm py-2"
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+          >
+            <option value="All">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <div className="shadow-sm border rounded overflow-hidden">
+      {/* Table */}
+      <div className="dashboard-content bg-white overflow-hidden shadow-sm">
+  <div className="table-responsive">
+    <table className="table table-hover align-middle mb-0">
+      <thead style={{ backgroundColor: "#fcfcfd" }}>
+        <tr className="text-muted small uppercase">
+          <th className="ps-4 py-3">Product</th>
+          {/* Hidden on mobile, shown on medium screens + */}
+          <th className="d-none d-md-table-cell">Category</th>
+          <th className="text-center">Stock</th>
+          <th className="d-none d-sm-table-cell">Price</th>
+          <th className="text-end pe-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
         {filteredProducts.map((product) => (
-          <div
-            key={product.id}
-            className="row align-items-center p-3 m-0 border-bottom bg-white"
-          >
-            {/* 1. Image: Takes 3 units on mobile, 1 on desktop */}
-            <div className="col-3 col-md-1">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="rounded border object-fit-cover"
-                width="60"
-                height="60"
-              />
-            </div>
-
-            {/* 2. Name & Description: Takes 9 units on mobile, 4 on desktop */}
-            <div className="col-9 col-md-4">
-              <div className="fw-bold text-dark">{product.name}</div>
-              <div
-                className="small text-muted text-truncate"
-                style={{ maxWidth: "100%" }}
-              >
-                {product.description}
-              </div>
-            </div>
-
-            {/* --- Mobile Only Row for Price and Stock --- */}
-            <div className="col-12 d-md-none my-2 border-top pt-2">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <span className="text-muted small">Price: </span>
-                  <span className="fw-bold text-primary">{product.price}</span>
-                </div>
-                <div>
-                  <span
-                    className={`badge ${product.stock < 10 ? "bg-danger" : "bg-success"}`}
+          <tr key={product.id} className="animate-fade-in">
+            <td className="ps-4 py-3">
+              <div className="d-flex align-items-center gap-2 gap-md-3">
+                <img
+                  src={product.image}
+                  className="rounded-3 border"
+                  width="40"
+                  height="40"
+                  style={{ objectFit: "cover" }}
+                  alt=""
+                />
+                <div className="text-truncate" style={{ maxWidth: "120px" }}>
+                  <p
+                    className="fw-bold m-0 small mb-md-1"
+                    style={{ color: "var(--text-color)", lineHeight: "1.2" }}
                   >
-                    {product.stock} units left
+                    {product.name}
+                  </p>
+                  {/* Sizes only show on larger screens to save vertical space on mobile */}
+                  <span className="d-link-color smaller d-none d-md-block">
+                    {product.sizes.join(", ")}
                   </span>
                 </div>
               </div>
-            </div>
-
-            {/* 3. Desktop Price: Hidden on mobile */}
-            <div className="col-md-1 d-none d-md-block fw-bold text-center">
-              {product.price}
-            </div>
-
-            {/* 4. Desktop Stock: Hidden on mobile */}
-            <div className="col-md-2 d-none d-md-block text-center">
+            </td>
+            
+            {/* Category: Hidden on mobile */}
+            <td className="d-none d-md-table-cell">
               <span
-                className={`badge ${product.stock < 10 ? "bg-danger" : "bg-success"}`}
+                className="badge rounded-pill px-3"
+                style={{
+                  background: "var(--d-main-bg-color)",
+                  color: "var(--text-color)",
+                }}
               >
-                {product.stock} left
+                {product.category}
               </span>
-            </div>
+            </td>
 
-            {/* 5. Actions: Full width on mobile, 2 units on desktop */}
-            <div className="col-12 col-md-4 col-lg-2 mt-2 mt-md-0 text-md-end d-flex gap-2 justify-content-end">
-              <button
-                className="btn btn-sm btn-outline-primary flex-grow-1 flex-md-grow-0"
-                onClick={() => setSelectedProduct(product)}
+            <td className="text-center">
+              <span
+                className={`fw-bold small ${product.stock < 5 ? "red-text" : "green"}`}
+                style={{
+                  color: product.stock < 5 ? "var(--red-color)" : "",
+                  fontSize: "0.85rem"
+                }}
               >
-                <i className="bi bi-pencil me-1"></i> Edit
-              </button>
-              <button
-                className="btn btn-sm btn-outline-danger bg-danger flex-grow-1 flex-md-grow-0"
-                onClick={() =>
-                  setProducts(products.filter((p) => p.id !== product.id))
-                }
-              >
-                <i className="bi bi-trash me-1"></i> Delete
-              </button>
-            </div>
-          </div>
+                {product.stock} <span className="d-none d-md-inline">in stock</span>
+              </span>
+            </td>
+
+            {/* Price: Hidden on extra small phones */}
+            <td className="fw-bold text-color d-none d-sm-table-cell">
+              ${product.price}
+            </td>
+
+            <td className="text-end pe-4">
+              <div className="d-flex justify-content-end">
+                <button
+                  className="btn btn-sm p-1 p-md-2 me-1 border-0"
+                  onClick={() => openModal("edit", product)}
+                >
+                  <FaEdit className="d-link-color" />
+                </button>
+                <button
+                  className="btn btn-sm p-1 p-md-2 border-0"
+                  onClick={() => {
+                    if (window.confirm("Delete this product?"))
+                      setProducts(products.filter((p) => p.id !== product.id));
+                  }}
+                >
+                  <FaTrash style={{ color: "var(--red-color)" }} />
+                </button>
+              </div>
+            </td>
+          </tr>
         ))}
-      </div>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-      {/* ADD / EDIT MODAL LOGIC (Shared UI Structure) */}
-      {(isAddModalOpen || selectedProduct) && (
+      {/* Modal */}
+      {modalMode && (
         <div
           className="modal d-block"
-          style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: 1050 }}
+          style={{
+            backgroundColor: "rgba(0,0,0,0.5)",
+            backdropFilter: "blur(4px)",
+          }}
         >
-          <div className="modal-dialog modal-dialog-centered modal-lg">
+          <div className="modal-dialog modal-lg modal-dialog-centered">
             <form
-              className="modal-content border-0 shadow"
-              onSubmit={isAddModalOpen ? handleAddProduct : handleUpdate}
+              className="modal-content border-0 shadow-lg"
+              style={{ borderRadius: "15px" }}
+              onSubmit={handleSubmit}
             >
-              <div className="modal-header bg-dark text-white py-2">
-                <h6 className="modal-title">
-                  {isAddModalOpen
-                    ? "Add New Product"
-                    : `Edit ${selectedProduct.name}`}
-                </h6>
+              <div className="modal-header border-0 pt-4 px-4">
+                <h5 className="modal-title">
+                  {modalMode === "add" ? "New Product" : "Edit Product"}
+                </h5>
                 <button
                   type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => {
-                    setIsAddModalOpen(false);
-                    setSelectedProduct(null);
-                  }}
+                  className="btn-close"
+                  onClick={() => setModalMode(null)}
                 ></button>
               </div>
               <div className="modal-body p-4">
-                <div className="row">
-                  <div className="col-md-4 text-center border-end">
-                    <img
-                      src={
-                        isAddModalOpen
-                          ? newProduct.image
-                          : selectedProduct.image
-                      }
-                      className="rounded border mb-2 object-fit-cover"
-                      width="150"
-                      height="150"
-                      alt="Preview"
-                    />
+                <div className="row g-4">
+                  <div className="col-md-4">
+                    <div
+                      className="preview-box border rounded-3 mb-3 overflow-hidden shadow-sm"
+                      style={{ height: "200px" }}
+                    >
+                      <img
+                        src={formData.image}
+                        className="w-100 h-100 object-fit-cover"
+                        alt="Preview"
+                      />
+                    </div>
                     <input
                       type="file"
                       className="form-control form-control-sm"
-                      accept="image/*"
-                      onChange={(e) =>
-                        handleImageChange(e, isAddModalOpen ? "add" : "edit")
-                      }
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.onloadend = () =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            image: reader.result,
+                          }));
+                        if (file) reader.readAsDataURL(file);
+                      }}
                     />
                   </div>
                   <div className="col-md-8">
-                    <div className="mb-3">
-                      <label className="form-label fw-bold small">
-                        Product Name
-                      </label>
-                      <input
-                        required
-                        type="text"
-                        className="form-control"
-                        value={
-                          isAddModalOpen
-                            ? newProduct.name
-                            : selectedProduct.name
-                        }
-                        onChange={(e) =>
-                          isAddModalOpen
-                            ? setNewProduct({
-                                ...newProduct,
-                                name: e.target.value,
-                              })
-                            : setSelectedProduct({
-                                ...selectedProduct,
-                                name: e.target.value,
-                              })
-                        }
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label fw-bold small">
-                        Description
-                      </label>
-                      <textarea
-                        className="form-control"
-                        rows="2"
-                        value={
-                          isAddModalOpen
-                            ? newProduct.description
-                            : selectedProduct.description
-                        }
-                        onChange={(e) =>
-                          isAddModalOpen
-                            ? setNewProduct({
-                                ...newProduct,
-                                description: e.target.value,
-                              })
-                            : setSelectedProduct({
-                                ...selectedProduct,
-                                description: e.target.value,
-                              })
-                        }
-                      ></textarea>
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label fw-bold small d-block">
-                        Available Sizes
-                      </label>
-                      <div className="d-flex flex-wrap gap-2">
-                        {allAvailableSizes.map((size) => (
-                          <button
-                            key={size}
-                            type="button"
-                            className={`btn btn-sm ${(isAddModalOpen ? newProduct.sizes.includes(size) : selectedProduct.sizes.includes(size)) ? "btn-primary" : "btn-outline-secondary"}`}
-                            onClick={() =>
-                              handleSizeToggle(
-                                size,
-                                isAddModalOpen ? "add" : "edit",
-                              )
-                            }
-                          >
-                            {size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-6">
-                        <label className="form-label fw-bold small">
-                          Price
-                        </label>
+                    <div className="row g-3">
+                      <div className="col-12">
+                        <label className="small fw-bold mb-1">Title</label>
                         <input
-                          required
                           type="text"
-                          className="form-control"
-                          value={
-                            isAddModalOpen
-                              ? newProduct.price
-                              : selectedProduct.price
-                          }
+                          className="form-control border-0 shadow-sm"
+                          style={{ background: "var(--d-main-bg-color)" }}
+                          required
+                          value={formData.name}
                           onChange={(e) =>
-                            isAddModalOpen
-                              ? setNewProduct({
-                                  ...newProduct,
-                                  price: e.target.value,
-                                })
-                              : setSelectedProduct({
-                                  ...selectedProduct,
-                                  price: e.target.value,
-                                })
+                            setFormData({ ...formData, name: e.target.value })
                           }
                         />
                       </div>
-                      <div className="col-6">
-                        <label className="form-label fw-bold small">
-                          Stock
-                        </label>
-                        <input
-                          required
-                          type="number"
-                          className="form-control"
-                          value={
-                            isAddModalOpen
-                              ? newProduct.stock
-                              : selectedProduct.stock
-                          }
+                      <div className="col-md-6">
+                        <label className="small fw-bold mb-1">Category</label>
+                        <select
+                          className="form-select border-0 shadow-sm"
+                          style={{ background: "var(--d-main-bg-color)" }}
+                          value={formData.category}
                           onChange={(e) =>
-                            isAddModalOpen
-                              ? setNewProduct({
-                                  ...newProduct,
-                                  stock: parseInt(e.target.value),
-                                })
-                              : setSelectedProduct({
-                                  ...selectedProduct,
-                                  stock: parseInt(e.target.value),
-                                })
+                            setFormData({
+                              ...formData,
+                              category: e.target.value,
+                            })
+                          }
+                        >
+                          {categories.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="col-md-3">
+                        <label className="small fw-bold mb-1">Price</label>
+                        <input
+                          type="number"
+                          className="form-control border-0 shadow-sm"
+                          style={{ background: "var(--d-main-bg-color)" }}
+                          required
+                          value={formData.price}
+                          onChange={(e) =>
+                            setFormData({ ...formData, price: e.target.value })
                           }
                         />
+                      </div>
+                      <div className="col-md-3">
+                        <label className="small fw-bold mb-1">Stock</label>
+                        <input
+                          type="number"
+                          className="form-control border-0 shadow-sm"
+                          style={{ background: "var(--d-main-bg-color)" }}
+                          required
+                          value={formData.stock}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              stock: parseInt(e.target.value),
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="col-12">
+                        <label className="small fw-bold mb-2 d-block">
+                          Available Sizes
+                        </label>
+                        <div className="d-flex flex-wrap gap-2">
+                          {allAvailableSizes.map((s) => (
+                            <button
+                              type="button"
+                              key={s}
+                              className={`btn btn-sm rounded-pill fw-bold transition-all px-3 ${formData.sizes.includes(s) ? "green_bg text-white" : "btn-outline-secondary"}`}
+                              onClick={() => handleSizeToggle(s)}
+                            >
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                        {formData.sizes.length === 0 && (
+                          <span className="text-danger small mt-1 d-block">
+                            Please select at least one size.
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="modal-footer bg-light py-2">
+              <div className="modal-footer border-0 p-4">
                 <button
                   type="button"
-                  className="btn btn-sm btn-secondary"
-                  onClick={() => {
-                    setIsAddModalOpen(false);
-                    setSelectedProduct(null);
+                  className="btn d-link-color border-0"
+                  onClick={() => setModalMode(null)}
+                >
+                  Discard
+                </button>
+
+                {/* MODIFIED BUTTON: Added disabled property and dynamic styling */}
+                <button
+                  type="submit"
+                  disabled={isFormInvalid}
+                  className="upload-btn px-5 shadow-sm"
+                  style={{
+                    borderRadius: "10px",
+                    opacity: isFormInvalid ? 0.5 : 1,
+                    cursor: isFormInvalid ? "not-allowed" : "pointer",
+                    backgroundColor: isFormInvalid
+                      ? "#ccc"
+                      : "var(--green-color)",
                   }}
                 >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-sm btn-primary px-4">
-                  {isAddModalOpen ? "Save Product" : "Update Changes"}
+                  {modalMode === "add" ? "Create Product" : "Save Changes"}
                 </button>
               </div>
             </form>

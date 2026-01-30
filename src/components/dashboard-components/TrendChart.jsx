@@ -9,103 +9,107 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// 1. Data points to create that "wave" look
 const data = [
-  { x: 0, current: 20, prev: 15 },
-  { x: 1, current: 28, prev: 18 },
-  { x: 2, current: 25, prev: 22 },
-  { x: 3, current: 50, prev: 28 }, // Peak 1
-  { x: 4, current: 15, prev: 35 }, // Dip
-  { x: 5, current: 38, prev: 20 }, // The "38" point
-  { x: 6, current: 45, prev: 38 }, // Peak 2
-  { x: 7, current: 35, prev: 25 },
+  { name: "Mon", current: 20, prev: 15 },
+  { name: "Tue", current: 28, prev: 18 },
+  { name: "Wed", current: 25, prev: 22 },
+  { name: "Thu", current: 50, prev: 28 },
+  { name: "Fri", current: 15, prev: 35 },
+  { name: "Sat", current: 38, prev: 20 },
+  { name: "Sun", current: 45, prev: 38 },
 ];
 
-// 2. Custom Tooltip (The white bubble with "38")
-const CustomTooltip = ({ active, payload }) => {
+const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div style={{
-        backgroundColor: '#fff',
-        padding: '5px 12px',
-        border: '1px solid #ececec',
-        borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        fontSize: '14px',
-        fontWeight: 'bold',
-        position: 'relative',
-        transform: 'translateY(-10px)'
-      }}>
-        {payload[0].value}
-        {/* Little arrow at bottom */}
-        <div style={{
-          position: 'absolute',
-          bottom: '-5px',
-          left: '50%',
-          marginLeft: '-5px',
-          width: '10px',
-          height: '10px',
-          backgroundColor: '#fff',
-          transform: 'rotate(45deg)',
-          borderRight: '1px solid #ececec',
-          borderBottom: '1px solid #ececec'
-        }}></div>
+      <div className="bg-white p-3 shadow-lg border rounded-3" style={{ minWidth: '120px' }}>
+        <p className="text-muted small mb-1 fw-bold">{label}</p>
+        <div className="d-flex flex-column gap-1">
+          <span className="text-primary small">
+            Current: <strong>${payload[1].value}</strong>
+          </span>
+          <span className="text-secondary small" style={{ opacity: 0.7 }}>
+            Previous: <strong>${payload[0].value}</strong>
+          </span>
+        </div>
       </div>
     );
   }
   return null;
 };
 
-export default function App() {
+const DashboardChart = () => {
   return (
-    <div style={{ width: "100%", height: 400, padding: "20px", fontFamily: "sans-serif" }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 30, right: 30, left: 0, bottom: 0 }}>
-          <defs>
-            {/* Gradient for the blue glow under the line */}
-            <linearGradient id="colorBlue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-            </linearGradient>
-          </defs>
+    <div className="card border-0 shadow-sm p-4 h-100">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h6 className="text-muted small fw-bold text-uppercase mb-1">Revenue Performance</h6>
+          <h4 className="fw-bold mb-0">$12,480.00 <span className="text-success small fw-normal" style={{ fontSize: '0.9rem' }}>+12.5%</span></h4>
+        </div>
+        <select className="form-select form-select-sm w-auto border-0 bg-light">
+          <option>Last 7 Days</option>
+          <option>Last 30 Days</option>
+        </select>
+      </div>
 
-          {/* Horizontal lines only */}
-          <CartesianGrid vertical={false} stroke="#f0f0f0" />
-          
-          <XAxis hide dataKey="x" />
-          <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
+      <div style={{ width: "100%", height: 300 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorBlue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              </linearGradient>
+            </defs>
 
-          <Tooltip 
-            content={<CustomTooltip />} 
-            cursor={{ stroke: '#3b82f6', strokeWidth: 1 }}
-          />
+            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f0f0f0" />
+            
+            <XAxis 
+              dataKey="name" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#94a3b8', fontSize: 12 }} 
+              dy={10}
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#94a3b8', fontSize: 12 }} 
+            />
 
-          {/* Background Grey Line */}
-          <Area
-            type="monotone"
-            dataKey="prev"
-            stroke="#e2e8f0"
-            strokeWidth={3}
-            fill="transparent"
-          />
+            <Tooltip content={<CustomTooltip />} />
 
-          {/* Main Blue Line */}
-          <Area
-            type="monotone"
-            dataKey="current"
-            stroke="#3b82f6"
-            strokeWidth={4}
-            fillOpacity={1}
-            fill="url(#colorBlue)"
-            activeDot={{ 
-              r: 6, 
-              fill: "#fff", 
-              stroke: "#3b82f6", 
-              strokeWidth: 3 
-            }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+            {/* Background "Previous Period" Line */}
+            <Area
+              type="monotone"
+              dataKey="prev"
+              stroke="#cbd5e1"
+              strokeWidth={2}
+              strokeDasharray="5 5"
+              fill="transparent"
+              activeDot={false}
+            />
+
+            {/* Main "Current Period" Line */}
+            <Area
+              type="monotone"
+              dataKey="current"
+              stroke="#3b82f6"
+              strokeWidth={3}
+              fillOpacity={1}
+              fill="url(#colorBlue)"
+              activeDot={{ 
+                r: 6, 
+                fill: "#fff", 
+                stroke: "#3b82f6", 
+                strokeWidth: 2 
+              }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
-}
+};
+
+export default DashboardChart;

@@ -13,7 +13,7 @@
 .green_bg { background: var(--green-color)!important; }
 .yellow_bg { background: var(--yellow-color)!important; }
 .red { background: var(--red-color)!important; }
-
+ 
 .d-link-color {
   color: var(--d-link-color);
   font-weight: bold;
@@ -32,21 +32,7 @@ h5 {
   font-size: 1.5rem;
   font-weight: bold;
 }
-/* .dashbord-bg {
-  background-color: var(--d-main-bg-color);
-}
-.dashboard-content-bg {
-  background-color: var(--d-main-bg-color);
-}
-.dashboard-sidebar {
-  background-color: var(--white-color);
-}
-.dashboard {
-  background-color: var(--white-color);
-  border-radius: 20px;
-  border: 10px solid var(--white-color);
-  border-top: 18px solid var(--white-color);
-} */
+
 
 .dashboard-sidebar {
   display: flex;
@@ -268,4 +254,40 @@ h5 {
     left: 0%;
     opacity: 1;
   }
+}
+/* Smooth Sidebar Transition */
+.dashboard-sidebar-container {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1050;
+}
+
+@media (max-width: 991.98px) {
+  .dashboard-sidebar-container {
+    position: fixed;
+    left: -280px; /* Hide off-screen */
+    height: 100vh;
+    width: 280px;
+  }
+  .dashboard-sidebar-container.show {
+    left: 0;
+  }
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
