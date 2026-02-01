@@ -137,3 +137,7 @@ const Contact = () => {
 };
 
 export default Contact;
+
+
+// this is my contect .jsx 
+// please give me normal reaponsive Inbox.jsx just show seen message use bootstrap 

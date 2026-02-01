@@ -1,47 +1,57 @@
-import { FaPowerOff, FaShoppingBag } from "react-icons/fa";
+import { FaPowerOff, FaShoppingBag, FaHome } from "react-icons/fa";
 import { MdOutlineShoppingCart, MdDashboard } from "react-icons/md";
 import { TiDelete } from "react-icons/ti";
 import { BiSlider } from "react-icons/bi";
-import {  IoIosSettings } from "react-icons/io";
+import { IoIosSettings } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
+import { VscFileMedia } from "react-icons/vsc";
 
 function Sidebar({ handleSidebar, contant, setContant }) {
-  
-  // 1. Data array to avoid repeating the same HTML 4 times
+  const navigate = useNavigate();
+
+  const handleHome = () => { 
+    navigate("/");
+  };
+
+  const handleLogout = () => {
+    console.log("Logging out...");
+    // clear auth data here if needed
+  };
+
   const menuItems = [
     { id: 1, label: "Dashboard", icon: <MdDashboard /> },
     { id: 2, label: "Order", icon: <MdOutlineShoppingCart /> },
     { id: 3, label: "Products", icon: <FaShoppingBag /> },
-    { id: 4, label: "Slider", icon: <BiSlider /> },
+    { id: 4, label: "Media", icon: <VscFileMedia /> },
     { id: 5, label: "Settings", icon: <IoIosSettings /> },
+    { id: 7, label: "Home", icon: <FaHome />, onClick: handleHome },
   ];
-
-  const handleLogout = () => {
-    // Add your logout logic here (e.g., clear localStorage, redirect)
-    console.log("Logging out...");
-  };
 
   return (
     <div className="dashboard-sidebar position-relative pt-5">
       {/* Mobile Close Button */}
-      <div className="d-block d-lg-none position-absolute top-0 end-0 fs-3 p-2">
-        <TiDelete 
-          className="cursor-pointer" 
-          onClick={handleSidebar} 
-          style={{ cursor: 'pointer' }}
+      <div
+        className="d-block d-lg-none position-absolute top-0 fs-3 p-2"
+        style={{ right: -50 }}
+      >
+        <TiDelete
+          className="cursor-pointer fs-1"
+          onClick={handleSidebar}
+          style={{ cursor: "pointer" }}
         />
       </div>
 
       {/* Logout Header */}
-      <div 
-        className="dashboard-sidebar-header-icon mb-4 d-flex align-items-center gap-2" 
+      <div
+        className="dashboard-sidebar-header-icon mb-4 d-flex align-items-center gap-2"
         onClick={handleLogout}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: "pointer" }}
       >
         <FaPowerOff className="text-danger" />
         <span className="fw-bold">Logout</span>
       </div>
 
-      {/* Sidebar Navigation Body */}
+      {/* Sidebar Navigation */}
       <div className="dashboard-sidebar-body d-flex flex-column gap-2">
         {menuItems.map((item) => (
           <div
@@ -51,9 +61,10 @@ function Sidebar({ handleSidebar, contant, setContant }) {
             }`}
             onClick={() => {
               setContant(item.id);
-              handleSidebar(); // Closes sidebar on mobile after selection
+              item.onClick?.(); // Home navigation works
+              handleSidebar(); // close sidebar on mobile
             }}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: "pointer" }}
           >
             <span className="fs-5">{item.icon}</span>
             <p className="m-0">{item.label}</p>

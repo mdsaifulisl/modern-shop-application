@@ -5,95 +5,97 @@ import {
   FaShippingFast,
   FaThumbsUp,
 } from "react-icons/fa";
-// Importing specific icons from the Lucide set
-import {
-  LuDollarSign,
-  LuTruck,
-  LuHeadphones,
-  LuShieldCheck,
-} from "react-icons/lu";
 
 const FeaturesSection = () => {
-  // const features = [
-  //   {
-  //     icon: <LuDollarSign size={32} />,
-  //     title: "Money Back Guarantee",
-  //     text: "Shall open Divide a one",
-  //   },
-  //   {
-  //     icon: <LuTruck size={32} />,
-  //     title: "Home Delivery",
-  //     text: "On orders over $100",
-  //   },
-  //   {
-  //     icon: <LuHeadphones size={32} />,
-  //     title: "Always Support",
-  //     text: "24/7 support available",
-  //   },
-  //   {
-  //     icon: <LuShieldCheck size={32} />,
-  //     title: "Secure Payment",
-  //     text: "100% secure payment",
-  //   },
-  // ];
+  const features = [
+    {
+      icon: <FaShippingFast />,
+      title: "Fast Delivery",
+      text: "Reliable shipping across the country right to your doorstep.",
+      color: "var(--d-link-color)",
+      bgColor: "rgba(167, 183, 221, 0.15)", // Based on --d-link-color
+    },
+    {
+      icon: <FaShieldAlt />,
+      title: "Secure Payments",
+      text: "Your transactions are safe and encrypted with our SSL protocols.",
+      color: "var(--green-color)",
+      bgColor: "rgba(25, 195, 50, 0.1)",
+    },
+    {
+      icon: <FaHeadset />,
+      title: "24/7 Support",
+      text: "Our dedicated team is always ready to assist you anytime.",
+      color: "var(--yellow-color)",
+      bgColor: "rgba(254, 196, 0, 0.1)",
+    },
+    {
+      icon: <FaThumbsUp />,
+      title: "High Quality",
+      text: "We ensure every product undergoes a strict quality check.",
+      color: "var(--red-color)",
+      bgColor: "rgba(255, 69, 136, 0.1)",
+    },
+  ];
 
   return (
-    <section
-      className="py-5 hero-height"
-      style={{ backgroundColor: "#fdfdfd" }}
-    >
-      <div className="row text-center g-2 g-lg-4">
-        <h2 className="fw-bold mb-5">Why Shop With Us?</h2>
-
-        <div className="col-6 col-lg-3">
-          <div className="card h-100 border-0 shadow-sm p-4 hover-up">
-            <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3 mx-auto">
-              <FaShippingFast className="text-white fs-3" />
-            </div>
-            <h5 className="fw-bold">Fast Delivery</h5>
-            <p className="small text-muted mb-0">
-              Reliable shipping across the country right to your doorstep.
-            </p>
-          </div>
-        </div>
-
-        <div className="col-6 col-lg-3">
-          <div className="card h-100 border-0 shadow-sm p-4 hover-up">
-            <div className="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3 mx-auto">
-              <FaShieldAlt className="text-success fs-3" />
-            </div>
-            <h5 className="fw-bold">Secure Payments</h5>
-            <p className="small text-muted mb-0">
-              Your transactions are safe and encrypted with our SSL protocols.
-            </p>
-          </div>
-        </div>
-
-        <div className="col-6 col-lg-3">
-          <div className="card h-100 border-0 shadow-sm p-4 hover-up">
-            <div className="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3 mx-auto">
-              <FaHeadset className="text-warning fs-3" />
-            </div>
-            <h5 className="fw-bold">24/7 Support</h5>
-            <p className="small text-muted mb-0">
-              Our dedicated team is always ready to assist you anytime.
-            </p>
-          </div>
-        </div>
-
-        <div className="col-6 col-lg-3">
-          <div className="card h-100 border-0 shadow-sm p-4 hover-up">
-            <div className="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3 mx-auto">
-              <FaThumbsUp className="text-danger fs-3" />
-            </div>
-            <h5 className="fw-bold">High Quality</h5>
-            <p className="small text-muted mb-0">
-              We ensure every product undergoes a strict quality check.
-            </p>
-          </div>
-        </div>
+    <>
+      <div className="text-center mb-5">
+        <h2 className="fw-bold" style={{ color: "var(--text-color)" }}>
+          Why Shop With Us?
+        </h2>
+        <div
+          className="mx-auto mt-2"
+          style={{
+            width: "60px",
+            height: "4px",
+            backgroundColor: "var(--green-color)",
+            borderRadius: "2px",
+          }}
+        ></div>
       </div>
-    </section>
+      <div className="row g-3 g-lg-4 text-center">
+        {features.map((feature, idx) => (
+          <div className="col-6 col-lg-3" key={idx}>
+            <div
+              className="dashboard-content bg-white h-100 p-4 shadow-sm border-0 transition-all"
+              style={{ transition: "transform 0.3s ease" }}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "translateY(-10px)")
+              }
+              onMouseOut={(e) =>
+                (e.currentTarget.style.transform = "translateY(0)")
+              }
+            >
+              <div
+                className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                style={{
+                  width: "70px",
+                  height: "70px",
+                  backgroundColor: feature.bgColor,
+                  color: feature.color,
+                  fontSize: "1.8rem",
+                }}
+              >
+                {feature.icon}
+              </div>
+              <h6
+                className="fw-bold mb-2"
+                style={{ color: "var(--text-color)" }}
+              >
+                {feature.title}
+              </h6>
+              <p
+                className="small mb-0 opacity-75"
+                style={{ color: "var(--text-color)", lineHeight: "1.5" }}
+              >
+                {feature.text}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 };
 

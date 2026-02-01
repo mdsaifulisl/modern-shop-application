@@ -2,12 +2,25 @@ import React, { useState, useEffect } from "react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import "../../assets/style/home.css";
 
+// context
+import { useMedia } from "../../context/MediaContext";
+
+
 const Hero = () => {
-  const sliderData = [
-    { id: 1, image: "/slider1.png" },
-    { id: 2, image: "/slider2.png" },
-    { id: 3, image: "/slider1.png" },
-  ];
+const { media } = useMedia();
+console.log("media", media);
+
+// filter slider media safely
+const filteredMedia = Array.isArray(media)
+  ? media.filter((item) => item.type === "slider")
+  : [];
+
+// create slider data array
+const sliderData = filteredMedia.map((item) => ({
+  id: item._id,
+  image: item.imageUrl || "/slider1.png",
+}));
+
 
   const [current, setCurrent] = useState(0);
   const length = sliderData.length;

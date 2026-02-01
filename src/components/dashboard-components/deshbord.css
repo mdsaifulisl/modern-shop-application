@@ -33,7 +33,6 @@ h5 {
   font-weight: bold;
 }
 
-
 .dashboard-sidebar {
   display: flex;
   align-items: center;
@@ -106,6 +105,7 @@ h5 {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+.totalorders-card,
 .shipped-card,
 .shipped-card2,
 .shipped-card3 {
@@ -116,6 +116,7 @@ h5 {
   cursor: pointer;
   transition: all 0.3s ease-in-out;
 }
+.totalorders-card:hover,
 .shipped-card:hover,
 .shipped-card2:hover,
 .shipped-card3:hover {

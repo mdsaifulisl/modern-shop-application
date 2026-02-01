@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   FaShoppingCart,
   FaUser,
@@ -15,9 +15,17 @@ import "../assets/style/header.css";
 import { useCart } from "../context/CartContext";
 
 const Header = () => {
+  const location = useLocation();
   // Use everything from context
-  const { cartItems, removeFromCart, updateQuantity, getSubtotal, cardLength, getCartCount } = useCart();
-  
+  const {
+    cartItems,
+    removeFromCart,
+    updateQuantity,
+    getSubtotal,
+    cardLength,
+    getCartCount,
+  } = useCart();
+
   const [headerActive, setHeaderActive] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
@@ -44,9 +52,13 @@ const Header = () => {
     updateQuantity(id, size, -1);
   };
 
+  if (location.pathname.startsWith("/dashboard")) {
+    return null; // Header completely hidden
+  }
+
   return (
     <>
-      <header className={`navbar px-lg-3 px-2 ${headerActive ? "active" : ""}`} >
+      <header className={`navbar px-lg-3 px-2 ${headerActive ? "active" : ""}`}>
         <div className="container-fluid navbar-inner">
           <div className="logo">
             <NavLink to="/">
@@ -55,11 +67,41 @@ const Header = () => {
           </div>
 
           <nav className={`nav-links ${menuOpen ? "active" : ""}`}>
-            <NavLink to="/" className={({ isActive }) => isActive ? "active" : ""} onClick={() => setMenuOpen(false)}>Home</NavLink>
-            <NavLink to="/shop" className={({ isActive }) => isActive ? "active" : ""} onClick={() => setMenuOpen(false)}>Shop</NavLink>
-            <NavLink to="/about" className={({ isActive }) => isActive ? "active" : ""} onClick={() => setMenuOpen(false)}>About</NavLink>
-            <NavLink to="/contact" className={({ isActive }) => isActive ? "active" : ""} onClick={() => setMenuOpen(false)}>Contact</NavLink>
-            <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""} onClick={() => setMenuOpen(false)}>Dashboard</NavLink>
+            <NavLink
+              to="/"
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setMenuOpen(false)}
+            >
+              Home
+            </NavLink>
+            <NavLink
+              to="/shop"
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setMenuOpen(false)}
+            >
+              Shop
+            </NavLink>
+            <NavLink
+              to="/about"
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setMenuOpen(false)}
+            >
+              About
+            </NavLink>
+            <NavLink
+              to="/contact"
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setMenuOpen(false)}
+            >
+              Contact
+            </NavLink>
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setMenuOpen(false)}
+            >
+              Dashboard
+            </NavLink>
           </nav>
 
           <div className="nav-actions">
@@ -69,7 +111,9 @@ const Header = () => {
 
             <button className="cart-btn" onClick={() => setCartOpen(true)}>
               <FaShoppingCart size={18} />
-              {cardLength > 0 && <span className="cart-count">{cardLength}</span>}
+              {cardLength > 0 && (
+                <span className="cart-count">{cardLength}</span>
+              )}
             </button>
 
             <button
@@ -105,12 +149,8 @@ const Header = () => {
 
                 <div className="cart-item-info">
                   <p className="cart-item-title">{item.name}</p>
-                  <small>
-                    Size: {item.size}
-                  </small>
-                  <small>
-                    price: {item.price}
-                  </small>
+                  <small>Size: {item.size}</small>
+                  <small>price: {item.price}</small>
 
                   <div className="cart-item-bottom">
                     <div className="qty-control">
@@ -129,7 +169,9 @@ const Header = () => {
                       </button>
                     </div>
 
-                    <strong>৳ {(item.discount_price || item.price) * item.quantity}</strong>
+                    <strong>
+                      ৳ {(item.discount_price || item.price) * item.quantity}
+                    </strong>
                   </div>
                 </div>
 

@@ -1,7 +1,9 @@
 /* =====================
    Navbar
 ===================== */
-
+header{
+  display: inline-block;
+}
 .navbar {
   background-color: var(--white);
   box-shadow: var(--shadow-sm);

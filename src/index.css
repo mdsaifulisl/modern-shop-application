@@ -7,6 +7,8 @@
   --primary-color: #0f766e;
   --secondary-color: #f59e0b;
 
+ --text-denger: #eb6d6d;
+
   --text-dark: #1f2933;
   --text-light: #6b7280;
 
@@ -67,6 +69,12 @@ body::-webkit-scrollbar {
 }
 .text-white {
   color: var(--white)!important;
+}
+.text-denger{
+  color: var(--text-denger)!important;
+}
+.text-denger-bg{
+  background-color: var(--text-denger)!important;
 }
 
 

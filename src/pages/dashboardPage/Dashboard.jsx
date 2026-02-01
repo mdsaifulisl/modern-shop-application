@@ -8,8 +8,9 @@ import ContantHead from "../../components/dashboard-components/Contant-head";
 import DeshbordHome from "../../components/dashboard-components/DeshbordHome";
 import OrderList from "../../components/dashboard-components/OrderList";
 import ProductList from "../../components/dashboard-components/ProductList";
-import AddSlider from "../../components/dashboard-components/AddSlider";
+import AddMedia from "../../components/dashboard-components/AddMedia";
 import Settings from "../../components/dashboard-components/Settings";
+import Inbox from "../../components/dashboard-components/Inbox";
 
 function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -34,8 +35,9 @@ function Dashboard() {
       case 1: return <DeshbordHome />;
       case 2: return <OrderList />;
       case 3: return <ProductList />;
-      case 4: return <AddSlider />;
+      case 4: return <AddMedia />;
       case 5: return <Settings />;
+      case 6: return <Inbox />;
       default: return <DeshbordHome />;
     }
   };
@@ -54,7 +56,7 @@ function Dashboard() {
           )}
 
           {/* Sidebar Column */}
-          <div className={`col-auto dashboard-sidebar-container ${isSidebarOpen ? "show bg-white" : ""}`}>
+          <div className={`col-auto dashboard-sidebar-container px-5 ${isSidebarOpen ? "show bg-white" : ""}`}>
             <Sidebar
               handleSidebar={toggleSidebar}
               contant={activeTab}
@@ -65,7 +67,7 @@ function Dashboard() {
           {/* Main Content Column */}
           <div className="col">
             <div className="dashboard-content-area p-3 p-md-4">
-              <ContantHead handleSidebar={toggleSidebar} />
+              <ContantHead handleSidebar={toggleSidebar} setContant={setActiveTab} />
               
               <main className="content-body mt-4 animate-fade-in">
                 {renderContent()}

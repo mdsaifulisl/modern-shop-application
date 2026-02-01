@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../../assets/style/home.css";
 import {
   FaLock,
@@ -9,7 +10,14 @@ import {
   FaShoppingBag,
 } from "react-icons/fa";
 
+// constext
+import { useCart } from "../../context/CartContext";
+import { useOrders } from "../../context/OrderContext";
+
 const Checkout = () => {
+  const navigate = useNavigate();
+  const { placeOrder, loading } = useOrders();
+  const { cartItems } = useCart();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -20,23 +28,7 @@ const Checkout = () => {
   });
 
   // Demo cart items (later replace with context)
-  const cartItems = [
-    {
-      id: 1,
-      productName: "Wireless Headset",
-      price: 800,
-      quantity: 1,
-      image:
-        "https://images.pexels.com/photos/1656684/pexels-photo-1656684.jpeg?auto=compress&cs=tinysrgb&w=600",
-    },
-    {
-      id: 2,
-      productName: "Smart Watch",
-      price: 400,
-      quantity: 3,
-      image: "https://via.placeholder.com/50",
-    },
-  ];
+ 
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -51,7 +43,7 @@ const Checkout = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (cartItems.length === 0) {
@@ -67,8 +59,22 @@ const Checkout = () => {
       total,
     };
 
-    console.log("Processing Order:", orderData);
-    alert(`Order placed successfully! Total: ৳${total}`);
+   const result = await placeOrder(orderData);
+
+   if (result.success) {
+      alert("Order placed successfully!");
+      navigate(`/order-success/${result.orderId}`); // Redirect to a confirmation page
+    } else {
+      alert(`Order Failed: ${result.message}`);
+    }
+    
+
+  
+    return (
+    <button type="submit" disabled={loading}>
+      {loading ? "Processing..." : "Confirm Order"}
+    </button>
+  );
   };
 
   return (
@@ -330,3 +336,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
+

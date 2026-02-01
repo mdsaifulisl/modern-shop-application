@@ -1,69 +1,48 @@
-import React, { useState } from "react";
-import { FaThumbtack, FaPrint, FaTrashAlt } from "react-icons/fa";
-
-
+import React, { useState, useEffect, useMemo } from "react";
+import { FaPrint, FaSearch } from "react-icons/fa";
+import { useOrders } from "../../context/OrderContext";
 
 const OrderList = () => {
-  const [orders, setOrders] = useState([
-    /* ... your initial data ... */
-    {
-      id: "#ORD-1001",
-      customer: "John Doe",
-      status: "Processing",
-      amount: "$120",
-      date: "12 Jan 2026",
-      phone: "01741899095",
-      address: "123 Main St, Cityville",
-      email: "john@example.com",
-      items: [
-        { productName: "Product A", size: "M", quantity: 2, totalPrice: "$50" },
-        { productName: "Product B", size: "L", quantity: 1, totalPrice: "$70" },
-      ],
-      pinned: false,
-    },
-    // Adding a second one for logic demo
-    {
-      id: "#ORD-1002",
-      customer: "Sarah Smith",
-      status: "Shipped",
-      amount: "$89",
-      date: "13 Jan 2026",
-      phone: "01741234567",
-      address: "456 Park Ave, Townsville",
-      email: "sarah@example.com",
-      items: [{ productName: "Product C", size: "S", quantity: 1, totalPrice: "$89" }],
-      pinned: true,
-    }
-  ]);
+  const { orders, fetchAllOrders, loading, updateOrderStatus } = useOrders();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // Toggle Pin Status
-  const togglePin = (id) => {
-    setOrders(orders.map(o => o.id === id ? { ...o, pinned: !o.pinned } : o));
+  useEffect(() => {
+    fetchAllOrders();
+  }, [fetchAllOrders]);
+
+  // Handle status update
+  const handleStatusChange = async (id, newStatus) => {
+    const result = await updateOrderStatus(id, newStatus);
+    if (result.success) {
+      // If the modal is open for this specific order, update the modal view too
+      if (selectedOrder?._id === id) {
+        setSelectedOrder((prev) => ({ ...prev, status: newStatus }));
+      }
+    } else {
+      alert("Failed to update status: " + result.message);
+    }
   };
 
-  // Status Update
-  const updateStatus = (id, newStatus) => {
-    const updated = orders.map((o) => o.id === id ? { ...o, status: newStatus } : o);
-    setOrders(updated);
-    setSelectedOrder(updated.find((o) => o.id === id));
-  };
+  // Optimization: useMemo prevents recalculating filters unless orders/search changes
+  const filteredOrders = useMemo(() => {
+    return orders
+      .filter((order) => {
+        const fullName = `${order.firstName || ""} ${order.lastName || ""}`.toLowerCase();
+        const orderId = (order._id || "").toLowerCase();
+        const search = searchTerm.toLowerCase();
 
-  // Logic: Pinned items come first, then filtered by Search/Status
-  const filteredOrders = orders
-    .filter((order) => {
-      const matchSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchStatus = statusFilter === "All" || order.status === statusFilter;
-      return matchSearch && matchStatus;
-    })
-    .sort((a, b) => b.pinned - a.pinned); // Pinned (true) comes before Unpinned (false)
+        const matchSearch = fullName.includes(search) || orderId.includes(search);
+        const matchStatus = statusFilter === "All" || order.status === statusFilter;
+        
+        return matchSearch && matchStatus;
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [orders, searchTerm, statusFilter]);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   const getBadgeClass = (status) => {
     const classes = {
@@ -71,150 +50,199 @@ const OrderList = () => {
       Processing: "bg-primary",
       Pending: "bg-warning text-dark",
       Cancelled: "bg-danger",
-      Returned: "bg-secondary"
+      Returned: "bg-secondary",
+      Delivered: "bg-info",
     };
     return classes[status] || "bg-info";
   };
 
+  // Fixed the return statement structure
   return (
-    <div className="container mt-4 mb-5">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h5 className="fw-bold m-0">Order Management</h5>
-        <button className="btn btn-outline-dark btn-sm" onClick={handlePrint}>
-          <FaPrint className="me-2" /> Print Report
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="row g-3 mb-4">
-        <div className="col-md-8">
-          <div className="input-group">
-            <span className="input-group-text bg-white border-end-0">🔍</span>
-            <input
-              className="form-control border-start-0"
-              placeholder="Search customer..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+    <div className="container-fluid mt-4 mb-5">
+      {loading && orders.length === 0 ? (
+        <div className="text-center mt-5 p-5">
+          <div className="spinner-border text-primary"></div>
+          <p className="mt-2 text-muted">Loading orders...</p>
+        </div>
+      ) : (
+        <>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h5 className="fw-bold m-0 text-uppercase tracking-wider">
+              Order Management
+            </h5>
+            <button className="btn btn-outline-dark btn-sm shadow-sm" onClick={handlePrint}>
+              <FaPrint className="me-2" /> Print Report
+            </button>
           </div>
-        </div>
-        <div className="col-md-4">
-          <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="All">All Status</option>
-            <option value="Processing">Processing</option>
-            <option value="Shipped">Shipped</option>
-            <option value="Pending">Pending</option>
-            <option value="Cancelled">Cancelled</option>
-            <option value="Returned">Returned</option>
-          </select>
-        </div>
-      </div>
 
-      {/* Orders Table */}
-      <div className="card border-0 shadow-sm overflow-hidden">
-        <div className="d-none d-md-flex row fw-bold bg-dark text-white p-3 m-0">
-          <div className="col-md-1"></div>
-          <div className="col-md-2">Order ID</div>
-          <div className="col-md-3">Customer</div>
-          <div className="col-md-2">Amount</div>
-          <div className="col-md-2 text-center">Status</div>
-          <div className="col-md-2 text-end">Action</div>
-        </div>
-
-        {filteredOrders.map((order) => (
-          <div key={order.id} className={`row m-0 p-3 border-bottom align-items-center ${order.pinned ? "bg-light" : "bg-white"}`}>
-            {/* Pin Action */}
-            <div className="col-12 col-md-1 text-md-center">
-              <FaThumbtack 
-                onClick={() => togglePin(order.id)}
-                style={{ cursor: 'pointer', color: order.pinned ? 'var(--primary-color)' : '#ccc' }}
-              />
+          {/* Filters */}
+          <div className="row g-3 mb-4">
+            <div className="col-md-8">
+              <div className="input-group shadow-sm">
+                <span className="input-group-text bg-white border-end-0">
+                   <FaSearch className="text-muted" />
+                </span>
+                <input
+                  className="form-control border-start-0"
+                  placeholder="Search customer or Order ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            
-            <div className="col-12 col-md-2 fw-bold text-primary">{order.id}</div>
-            <div className="col-12 col-md-3">
-               <strong>{order.customer}</strong>
-               <div className="small text-muted">{order.phone}</div>
-            </div>
-            <div className="col-12 col-md-2 fw-bold text-success">{order.amount}</div>
-            <div className="col-12 col-md-2 text-md-center">
-              <span className={`badge ${getBadgeClass(order.status)}`}>{order.status}</span>
-            </div>
-            <div className="col-12 col-md-2 text-md-end mt-2 mt-md-0">
-              <button className="btn btn-dark btn-sm px-3" onClick={() => setSelectedOrder(order)}>
-                Details
-              </button>
+            <div className="col-md-4">
+              <select
+                className="form-select shadow-sm"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="All">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Processing">Processing</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Returned">Returned</option>
+                <option value="Delivered">Delivered</option>
+              </select>
             </div>
           </div>
-        ))}
-      </div>
+
+          {/* Orders Table */}
+          <div className="card border-0 shadow-sm overflow-hidden">
+            <div className="d-none d-md-flex row fw-bold bg-dark text-white p-3 m-0">
+              <div className="col-md-1">Image</div>
+              <div className="col-md-2">Order ID</div>
+              <div className="col-md-3">Customer</div>
+              <div className="col-md-2">Amount</div>
+              <div className="col-md-2 text-center">Status</div>
+              <div className="col-md-2 text-end">Action</div>
+            </div>
+
+            {filteredOrders.length > 0 ? (
+              filteredOrders.map((order) => (
+                <div
+                  key={order._id}
+                  className="row m-0 p-3 border-bottom align-items-center bg-white hover-light"
+                >
+                  <div className="col-3 col-md-1">
+                    <img
+                      src={order.orderItems?.[0]?.image || "https://via.placeholder.com/50"}
+                      alt="preview"
+                      className="rounded border"
+                      style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                    />
+                  </div>
+
+                  <div className="col-9 col-md-2 fw-bold text-primary small">
+                    #{order._id?.slice(-5)}
+                  </div>
+
+                  <div className="col-12 col-md-3 mt-2 mt-md-0">
+                    <div className="fw-bold">{order.firstName} {order.lastName}</div>
+                    <div className="small text-muted">{order.phone}</div>
+                  </div>
+
+                  <div className="col-4 col-md-2 fw-bold text-success mt-2 mt-md-0">
+                    ৳{order.total}
+                  </div>
+
+                  <div className="col-4 col-md-2 text-md-center mt-2 mt-md-0">
+                    <span className={`badge ${getBadgeClass(order.status)}`}>
+                      {order.status}
+                    </span>
+                  </div>
+
+                  <div className="col-4 col-md-2 text-md-end mt-2 mt-md-0">
+                    <button
+                      className="btn btn-dark btn-sm px-3 w-100 w-md-auto shadow-sm"
+                      onClick={() => setSelectedOrder(order)}
+                    >
+                      Details
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-5 text-center text-muted">No orders found.</div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Modal - Details */}
       {selectedOrder && (
-        <div className="modal d-block" style={{ background: "rgba(0,0,0,0.7)" }}>
-           {/* ... your modal content remains similar, but clean it up ... */}
-           <div className="modal-dialog modal-lg modal-dialog-centered shadow-lg">
-             <div className="modal-content border-0">
-                <div className="modal-header bg-light">
-                   <h5 className="modal-title fw-bold">Order Details: {selectedOrder.id}</h5>
-                   <button className="btn-close" onClick={() => setSelectedOrder(null)} />
+        <div className="modal d-block" style={{ background: "rgba(0,0,0,0.7)", zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered shadow-lg">
+            <div className="modal-content border-0">
+              <div className="modal-header bg-light">
+                <h5 className="modal-title fw-bold">Order #{selectedOrder._id?.slice(-5)}</h5>
+                <button className="btn-close" onClick={() => setSelectedOrder(null)} />
+              </div>
+              <div className="modal-body p-4">
+                <div className="row mb-4">
+                  <div className="col-md-6">
+                    <label className="text-muted small text-uppercase fw-bold">Shipping Info</label>
+                    <p className="small mb-0 text-muted">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                    <p className="fw-bold mb-0">{selectedOrder.firstName} {selectedOrder.lastName}</p>
+                    <p className="small mb-0 text-muted">{selectedOrder.email} | {selectedOrder.phone}</p>
+                    <p className="small text-muted">{selectedOrder.address}</p>
+                  </div>
+                  <div className="col-md-6 text-md-end">
+                    <label className="text-muted small text-uppercase fw-bold">Update Status</label>
+                    <div>
+                      <select
+                        className="form-select w-auto d-inline-block shadow-sm"
+                        value={selectedOrder.status}
+                        onChange={(e) => handleStatusChange(selectedOrder._id, e.target.value)}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Returned">Returned</option>
+                        <option value="Delivered">Delivered</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div className="modal-body p-4">
-                   <div className="row mb-4">
-                      <div className="col-md-6">
-                         <label className="text-muted small text-uppercase fw-bold">Shipping To</label>
-                         <p className="fw-bold mb-0">{selectedOrder.customer}</p>
-                         <p className="small mb-0 text-muted">{selectedOrder.email} | {selectedOrder.phone}</p>
-                         <p className="small text-muted">{selectedOrder.address}</p>
-                      </div>
-                      <div className="col-md-6 text-md-end">
-                         <label className="text-muted small text-uppercase fw-bold">Update Status</label>
-                         <div>
-                            <select 
-                               className="form-select w-auto d-inline-block"
-                               value={selectedOrder.status}
-                               onChange={(e) => updateStatus(selectedOrder.id, e.target.value)}
-                            >
-                               <option>Pending</option>
-                               <option>Processing</option>
-                               <option>Shipped</option>
-                               <option>Cancelled</option>
-                               <option>Returned</option>
-                            </select>
-                         </div>
-                      </div>
-                   </div>
-                   
-                   <table className="table table-sm">
-                      <thead className="table-light">
-                         <tr>
-                            <th>Item Name</th>
-                            <th>Size</th>
-                            <th className="text-center">Qty</th>
-                            <th className="text-end">Total</th>
-                         </tr>
-                      </thead>
-                      <tbody>
-                         {selectedOrder.items.map((item, i) => (
-                            <tr key={i}>
-                               <td>{item.productName}</td>
-                               <td>{item.size}</td>
-                               <td className="text-center">{item.quantity}</td>
-                               <td className="text-end fw-bold">{item.totalPrice}</td>
-                            </tr>
-                         ))}
-                      </tbody>
-                   </table>
-                   <div className="text-end mt-3 h5 fw-bold text-success">
-                      Grand Total: {selectedOrder.amount}
-                   </div>
+
+                <div className="table-responsive">
+                  <table className="table table-sm align-middle">
+                    <thead className="table-light">
+                      <tr>
+                        <th>Item</th>
+                        <th>Size</th>
+                        <th className="text-center">Qty</th>
+                        <th className="text-end">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedOrder.orderItems?.map((item, i) => (
+                        <tr key={i}>
+                          <td>
+                            <div className="d-flex align-items-center gap-2">
+                              <img src={item.image} alt="" className="rounded border" style={{ width: "35px", height: "35px", objectFit: "cover" }} />
+                              <span className="fw-bold small">{item.productName}</span>
+                            </div>
+                          </td>
+                          <td><span className="badge bg-light text-dark border">{item.size}</span></td>
+                          <td className="text-center">{item.quantity}</td>
+                          <td className="text-end">৳{item.price}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div className="modal-footer border-0">
-                   <button className="btn btn-secondary px-4" onClick={() => setSelectedOrder(null)}>Close</button>
-                   <button className="btn btn-primary px-4" onClick={handlePrint}>Print Invoice</button>
+                <div className="text-end mt-3 h5 fw-bold text-success">
+                  Total: ৳{selectedOrder.total}
                 </div>
-             </div>
-           </div>
+              </div>
+              <div className="modal-footer border-0">
+                <button className="btn btn-secondary px-4 shadow-sm" onClick={() => setSelectedOrder(null)}>Close</button>
+                <button className="btn btn-primary px-4 shadow-sm" onClick={handlePrint}>Print Invoice</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -222,4 +250,3 @@ const OrderList = () => {
 };
 
 export default OrderList;
-

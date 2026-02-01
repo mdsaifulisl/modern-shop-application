@@ -17,6 +17,7 @@ import Checkout from "./pages/checkout/Checkout"
 import About from "./pages/about/About"
 import Contact from "./pages/contact/Contact"
 import Dashbord from "./pages/dashboardPage/Dashboard"
+import OrderSuccess from "./pages/orderSuccess/OrderSuccess"
 
 function App() {
 
@@ -33,6 +34,7 @@ function App() {
           <Route path="/dashboard" element={<Dashbord />} />
           <Route path="/details/:id" element={<Details />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-success/:orderId" element={<OrderSuccess />} />
           <Route path="/login" element={<Login />} />
         </Routes>
       </main>

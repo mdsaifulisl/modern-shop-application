@@ -1,15 +1,21 @@
 import React from "react";
-
 import { useState } from "react";
-import data from "../../data/data.json";
 import "../../assets/style/home.css";
 import { useNavigate } from "react-router-dom";
 import { FaSearch, FaTimes, FaFilter } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ProductCard from "../../components/ProductCard";
 
+// components
+import Loader from "../../components/Loader";
+
+// Context
+import { useProducts } from "../../context/ProductContext";
+
+
 const Shop = () => {
-  const { products = [] } = data;
+  const { loading, products } = useProducts();
+
   const navigate = useNavigate();
 
   // States
@@ -52,6 +58,7 @@ const Shop = () => {
 
     return matchesSearch && matchesPrice;
   });
+
 
   return (
     <>
@@ -182,7 +189,12 @@ const Shop = () => {
             </div>
             {/* col-6 col-md-4 col-xl-3 */}
             <div className="row g-lg-4 g-1 pb-0 pb-md-3 pb-lg-5 ">
-              <ProductCard filteredProducts={filteredProducts} handleDetails={handleDetails} />
+              {loading ? (
+                <Loader />
+              ) : (
+                <ProductCard filteredProducts={filteredProducts} handleDetails={handleDetails} />
+              )}
+              
             </div>
 
             {filteredProducts.length === 0 && (

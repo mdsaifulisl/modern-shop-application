@@ -7,9 +7,13 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
 import ProductCard from "../ProductCard";
 
+// product Context
+import { useProducts } from "../../context/ProductContext";
+
 const Featured = () => {
-const { products = [] } = data;
-const productss = products.slice(0, 8);
+const { products = [] } = useProducts(); // products array
+const productss = products.slice(0, 8);  // প্রথম ৮টি product
+
 
   const Naviget = useNavigate()
 
