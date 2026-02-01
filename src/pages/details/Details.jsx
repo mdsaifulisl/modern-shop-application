@@ -13,7 +13,7 @@ const Details = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { getByProductId, loading } = useProducts();
+  const { getByProductId } = useProducts();
   const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
@@ -29,13 +29,7 @@ const Details = () => {
     loadProduct();
   }, [id, getByProductId]);
 
-  if (loading || !product) {
-    return (
-      <div className="container py-5 text-center">
-        <Loader />
-      </div>
-    );
-  }
+  if (!product) return <Loader />;
 
   const hasDiscount =
     product.discount_price > 0 && product.discount_price < product.price;
@@ -72,6 +66,7 @@ const Details = () => {
     const success = handleAddToCart();
     if (success) navigate("/checkout");
   };
+
 
   return (
     <section className="product-details section">

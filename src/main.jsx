@@ -13,20 +13,27 @@ import { CartProvider } from "./context/CartContext";
 import { ProductProvider } from "./context/ProductContext";
 import { OrderProvider } from "./context/OrderContext";
 import { MediaProvider } from "./context/MediaContext.jsx";
+import { ContactProvider } from "./context/ContactContext.jsx";
+import { VisitProvider } from "./context/VisitContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <CartProvider>
-      <OrderProvider>
-        <ProductProvider>
-          {/* Add MediaProvider here */}
-          <MediaProvider> 
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </MediaProvider>
-        </ProductProvider>
-      </OrderProvider>
-    </CartProvider>
+    <BrowserRouter>
+      <VisitProvider>
+        <CartProvider>
+          <OrderProvider>
+            <ProductProvider>
+              <MediaProvider>
+                <ContactProvider>
+                  <App />
+                </ContactProvider>
+              </MediaProvider>
+            </ProductProvider>
+          </OrderProvider>
+        </CartProvider>
+      </VisitProvider>
+    </BrowserRouter>
   </StrictMode>
 );
+
+

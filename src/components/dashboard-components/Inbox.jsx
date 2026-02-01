@@ -1,41 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { FaTrash } from "react-icons/fa";
+import { IoEyeSharp } from "react-icons/io5";
+
+// context
+import { useContacts } from "../../context/ContactContext";
 
 const Inbox = () => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      name: "Md. Saiful Islam",
-      email: "saiful@gmail.com",
-      subject: "Order Issue",
-      message: "I have a problem with my recent order. Please check.",
-      seen: false,
-      date: "2026-01-30",
-    },
-    {
-      id: 2,
-      name: "Rahim Uddin",
-      email: "rahim@gmail.com",
-      subject: "Product Inquiry",
-      message: "Is this product available in large size?",
-      seen: true,
-      date: "2026-01-28",
-    },
-  ]);
-
+  const { messages, deleteMessage, fetchMessages, markAsRead } = useContacts();
   const [selectedMessage, setSelectedMessage] = useState(null);
-
-  const openDetails = (msg) => {
-    // mark as seen when opened
-    if (!msg.seen) {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === msg.id ? { ...m, seen: true } : m
-        )
-      );
-    }
+  console.log("messages", messages);
+  const openDetails = async (msg) => {
     setSelectedMessage(msg);
+    await markAsRead(msg.id);
+    await fetchMessages();
   };
+
+  const heandelDelete = async (msg) => {
+    await deleteMessage(msg.id);
+    await fetchMessages();
+  };
+
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
 
   return (
     <div className="container-fluid py-4">
@@ -47,51 +35,69 @@ const Inbox = () => {
             <thead className="table-light">
               <tr>
                 <th>Name</th>
-                <th>Subject</th>
-                <th>Date</th>
+                <th className="d-none d-md-table-cell">Subject</th>
+                <th className="d-none d-md-table-cell">Date</th>
                 <th>Status</th>
                 <th className="text-end">Action</th>
               </tr>
             </thead>
 
             <tbody>
+              {messages.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="text-center py-4 text-muted">
+                    No messages found
+                  </td>
+                </tr>
+              )}
+
               {messages.map((msg) => (
-                <tr key={msg.id}>
+                <tr key={msg._id}>
+                  {/* Name column */}
                   <td>
                     <div className="fw-semibold">{msg.name}</div>
-                    <small className="text-muted">{msg.email}</small>
+                    <small className="text-muted d-block d-none d-md-table-cell">
+                      {msg.number} {/* show email on mobile */}
+                    </small>
                   </td>
 
+                  {/* Subject column */}
+                  <td
+                    className={`d-none d-md-table-cell ${msg.status === "unread" ? "fw-bold" : ""}`}
+                  >
+                    {msg.subject}
+                  </td>
+
+                  {/* Date column */}
+                  <td className="d-none d-md-table-cell">
+                    {new Date(msg.createdAt).toLocaleDateString()}
+                  </td>
+
+                  {/* Status column */}
                   <td>
-                    <span className={msg.seen ? "" : "fw-bold"}>
-                      {msg.subject}
+                    <span
+                      className={`badge ${msg.status === "unread" ? "bg-warning text-dark" : "bg-success"}`}
+                    >
+                      {msg.status}
                     </span>
                   </td>
 
-                  <td>{msg.date}</td>
-
-                  <td>
-                    {msg.seen ? (
-                      <span className="badge bg-success">Seen</span>
-                    ) : (
-                      <span className="badge bg-warning text-dark">
-                        Unseen
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="text-end">
+                  {/* Action column */}
+                  <td className="text-end d-flex gap-2 justify-content-end">
                     <button
-                      className={`btn btn-sm ${
-                        msg.seen
-                          ? "btn-outline-success"
-                          : "btn-outline-primary"
-                      }`}
+                      className="btn btn-sm btn-outline-primary"
                       data-bs-toggle="modal"
                       data-bs-target="#messageModal"
                       onClick={() => openDetails(msg)}
                     >
-                      {msg.seen ? "Seen" : "Unseen"}
+                      <IoEyeSharp />
+                    </button>
+
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => heandelDelete(msg)}
+                    >
+                      <FaTrash />
                     </button>
                   </td>
                 </tr>
@@ -122,10 +128,16 @@ const Inbox = () => {
             {selectedMessage && (
               <div className="modal-body">
                 <p>
+                  <strong>date:</strong> {selectedMessage.createdAt.slice(0, 10)}
+                </p>
+                <p>
                   <strong>Name:</strong> {selectedMessage.name}
                 </p>
                 <p>
                   <strong>Email:</strong> {selectedMessage.email}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {selectedMessage.number}
                 </p>
                 <p>
                   <strong>Subject:</strong> {selectedMessage.subject}

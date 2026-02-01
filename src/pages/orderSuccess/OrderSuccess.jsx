@@ -1,20 +1,35 @@
 import React, { useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaCheckCircle, FaShoppingBag, FaPrint, FaHome } from "react-icons/fa";
 import confetti from "canvas-confetti"; // Optional: npm install canvas-confetti
 
-const OrderSuccess = () => {
-  const { orderId } = useParams();
+// constext
+import { useOrders } from "../../context/OrderContext";
 
-  useEffect(() => {
-    // 🎉 Trigger confetti for a great user experience
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ["#28a745", "#20c997", "#ffffff"],
-    });
-  }, []);
+const OrderSuccess = () => {
+  const navigate = useNavigate();
+  const { orderId } = useParams();
+  const { verifyOrder } = useOrders();
+
+ useEffect(() => {
+  const checkOrder = async () => {
+    const result = await verifyOrder(orderId);
+    if (result.success) {
+      
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ["#28a745", "#20c997", "#ffffff"],
+      });
+    } else {
+      navigate("/");
+    }
+  };
+
+  checkOrder();
+}, [orderId, verifyOrder, navigate]);
+
 
   const handlePrint = () => {
     window.print();

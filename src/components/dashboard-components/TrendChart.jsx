@@ -1,26 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-// context
 import { useOrders } from '../../context/OrderContext';
 
-
-
-
 const TrendChart = () => {
-  
-  const {orders} = useOrders();
+  const { orders, fetchAllOrders } = useOrders();
+
   const data = useMemo(() => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-    const result = days.map((day) => ({
-      name: day,
-      sales: 0,
-    }));
+    const result = days.map((day) => ({ name: day, sales: 0 }));
 
     orders.forEach((order) => {
       if (order.status !== "Shipped" && order.status !== "Delivered") return;
-
       const dayIndex = new Date(order.createdAt).getDay();
       result[dayIndex].sales += Number(order.total);
     });
@@ -28,8 +18,12 @@ const TrendChart = () => {
     return result;
   }, [orders]);
 
+  useEffect(() => {
+    fetchAllOrders();
+  }, [fetchAllOrders]);
+
   return (
-    <ResponsiveContainer width="100%" height={300}> 
+    <ResponsiveContainer width="100%" height={300}>
       <AreaChart data={data}>
         <defs>
           <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
@@ -48,4 +42,3 @@ const TrendChart = () => {
 };
 
 export default TrendChart;
-

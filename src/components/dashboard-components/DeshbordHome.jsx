@@ -1,11 +1,11 @@
-import React from "react";
+import { useEffect} from "react";
 import TrendChart from "./TrendChart";
 
 // context
 import { useOrders } from "../../context/OrderContext";
 
 const DashboardHome = () => {
-  const { orders } = useOrders();
+  const { orders, fetchAllOrders } = useOrders();
   const orderStatuses = ["Shipped", "Pending", "Cancelled"];
 
   const orderStatusCounts = orderStatuses.reduce((acc, status) => {
@@ -59,6 +59,10 @@ const DashboardHome = () => {
     };
     return classes[status] || "bg-info";
   };
+
+  useEffect(() => {
+    fetchAllOrders();
+  }, [fetchAllOrders]);
 
   return (
     <div

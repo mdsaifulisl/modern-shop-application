@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "../../assets/style/home.css";
 import {
   FaLock,
@@ -28,11 +28,10 @@ const Checkout = () => {
   });
 
   // Demo cart items (later replace with context)
- 
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
 
   const shippingCost = formData.location === "inside" ? 70 : 120;
@@ -59,23 +58,40 @@ const Checkout = () => {
       total,
     };
 
-   const result = await placeOrder(orderData);
+    const result = await placeOrder(orderData);
 
-   if (result.success) {
+    if (result.success) {
       alert("Order placed successfully!");
       navigate(`/order-success/${result.orderId}`); // Redirect to a confirmation page
     } else {
       alert(`Order Failed: ${result.message}`);
     }
-    
 
-  
     return (
-    <button type="submit" disabled={loading}>
-      {loading ? "Processing..." : "Confirm Order"}
-    </button>
-  );
+      <button type="submit" disabled={loading}>
+        {loading ? "Processing..." : "Confirm Order"}
+      </button>
+    );
   };
+  
+if (cartItems.length === 0) {
+  return (
+    <div className="checkout-page bg-light py-5">
+      <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
+        <div className="card shadow-sm p-4 text-center">
+          <h4 className="fw-bold mb-3">Checkout</h4>
+          <div className="alert alert-warning fw-bold">
+            Your cart is empty.
+          </div>
+          <Link to="/shop" className="btn btn-primary mt-3">
+            Go to Shop
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
   return (
     <div className="checkout-page bg-light py-5">
@@ -225,6 +241,13 @@ const Checkout = () => {
                           </div>
                         </label>
                       </div>
+
+                      <button
+                        type="submit"
+                        className="btn btn-primary btn-lg w-100 rounded-pill fw-bold my-3 d-lg-none"
+                      >
+                        Confirm Order
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -256,10 +279,7 @@ const Checkout = () => {
 
             {/* RIGHT */}
             <div className="col-lg-4">
-              <div
-                className="card border-0 shadow-sm p-4"
-                style={{ top: 20 }}
-              >
+              <div className="card border-0 shadow-sm p-4" style={{ top: 20 }}>
                 <h5 className="fw-bold mb-4">
                   <FaShoppingBag className="me-2 text-muted" /> Order Summary
                 </h5>
@@ -284,12 +304,8 @@ const Checkout = () => {
                         }}
                       />
                       <div className="ms-3 flex-grow-1">
-                        <div className="small fw-bold">
-                          {item.productName}
-                        </div>
-                        <div className="small text-muted">
-                          ৳ {item.price}
-                        </div>
+                        <div className="small fw-bold">{item.productName}</div>
+                        <div className="small text-muted">৳ {item.price}</div>
                       </div>
                       <div className="fw-bold">
                         ৳ {item.price * item.quantity}
@@ -311,14 +327,12 @@ const Checkout = () => {
 
                 <div className="d-flex justify-content-between mb-4">
                   <span className="fs-5 fw-bold">Total</span>
-                  <span className="fs-5 fw-bold text-primary">
-                    ৳ {total}
-                  </span>
+                  <span className="fs-5 fw-bold text-primary">৳ {total}</span>
                 </div>
 
                 <button
                   type="submit"
-                  className="btn btn-primary btn-lg w-100 rounded-pill fw-bold mb-3"
+                  className="btn btn-primary btn-lg w-100 rounded-pill fw-bold mb-3 d-none d-lg-block"
                 >
                   Confirm Order
                 </button>
@@ -336,4 +350,3 @@ const Checkout = () => {
 };
 
 export default Checkout;
-

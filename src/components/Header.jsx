@@ -15,6 +15,7 @@ import "../assets/style/header.css";
 import { useCart } from "../context/CartContext";
 
 const Header = () => {
+  
   const location = useLocation();
   // Use everything from context
   const {
@@ -31,6 +32,7 @@ const Header = () => {
   const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
+     
     const handleScroll = () => {
       if (window.scrollY > 300) {
         setHeaderActive(true);
@@ -41,6 +43,9 @@ const Header = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+
+    // Fetch visits on component mount
+   
   }, []);
 
   // Handlers now call context functions

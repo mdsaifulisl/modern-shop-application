@@ -92,7 +92,7 @@ const getByProductId = async (id) => {
         loading,
         error,
         getByProductId,
-        refreshProducts: fetchProducts,
+        refreshProducts:fetchProducts,
         addProduct,
         updateProduct,
         deleteProduct

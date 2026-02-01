@@ -1,40 +1,42 @@
 import React, { useState } from "react";
-import { FaEdit, FaTrash, FaPlus, FaSearch, FaTag, FaFileAlt } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
 import { useProducts } from "../../context/ProductContext";
 
 const ProductList = () => {
   const { products, addProduct, updateProduct, deleteProduct, loading, refreshProducts } = useProducts();
-
+ 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [modalMode, setModalMode] = useState(null);
-  
+
+  const allAvailableSizes = ["S-32", "M-36", "L-40", "XL-44", "XXL-48", "One Size"];
+
   const [formData, setFormData] = useState({
+    _id: null,
     productName: "",
     category: "",
     price: "",
     discount_price: "",
     stock: 0,
-    description: "", // Description field
+    description: "",
     sizes: [],
     image: null,
     preview: "",
   });
-
-  const allAvailableSizes = ["S-32", "M-36", "L-40", "XL-44", "XXL-48", "One Size"];
 
   const isFormInvalid = !formData.productName.trim() || !formData.price || formData.sizes.length === 0;
 
   const openModal = (mode, product = null) => {
     setModalMode(mode);
     if (mode === "edit" && product) {
-      setFormData({ 
-        ...product, 
-        preview: `${product.image}`,
-        image: null 
+      setFormData({
+        ...product,
+        preview: product.image,
+        image: null,
       });
     } else {
       setFormData({
+        _id: null,
         productName: "",
         category: "",
         price: "",
@@ -67,21 +69,17 @@ const ProductList = () => {
     data.append("price", formData.price);
     data.append("discount_price", formData.discount_price || 0);
     data.append("stock", formData.stock);
-    data.append("description", formData.description); // Append to FormData
+    data.append("description", formData.description);
     data.append("sizes", JSON.stringify(formData.sizes));
-    
-    if (formData.image) {
-      data.append("image", formData.image);
-    }
+    if (formData.image) data.append("image", formData.image);
 
     if (modalMode === "add") {
-      // Logic for ID generation as discussed
-      data.append("_id", Math.floor(Math.random() * 1000000));
       await addProduct(data);
-      refreshProducts();
     } else {
       await updateProduct(formData._id, data);
     }
+
+    await refreshProducts(); // Fetch latest products from backend
     setModalMode(null);
   };
 
@@ -91,7 +89,7 @@ const ProductList = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const uniqueCategories = ["All", ...new Set(products.map(p => p.category))];
+  const uniqueCategories = ["All", ...new Set(products.map((p) => p.category))];
 
   return (
     <div className="container-fluid py-4 animate-fade-in" style={{ backgroundColor: "var(--d-main-bg-color)", minHeight: "100vh" }}>
@@ -237,9 +235,7 @@ const ProductList = () => {
                       className="form-control form-control-sm"
                       onChange={(e) => {
                         const file = e.target.files[0];
-                        if (file) {
-                          setFormData({ ...formData, image: file, preview: URL.createObjectURL(file) });
-                        }
+                        if (file) setFormData({ ...formData, image: file, preview: URL.createObjectURL(file) });
                       }}
                     />
                   </div>
@@ -247,84 +243,33 @@ const ProductList = () => {
                     <div className="row g-3">
                       <div className="col-12">
                         <label className="small fw-bold mb-1">Product Title</label>
-                        <input
-                          type="text"
-                          className="form-control border-0 shadow-sm"
-                          style={{ background: "var(--d-main-bg-color)" }}
-                          required
-                          value={formData.productName}
-                          onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
-                        />
+                        <input type="text" className="form-control border-0 shadow-sm" style={{ background: "var(--d-main-bg-color)" }} required value={formData.productName} onChange={(e) => setFormData({ ...formData, productName: e.target.value })} />
                       </div>
                       <div className="col-md-6">
                         <label className="small fw-bold mb-1">Category</label>
-                        <input
-                          type="text"
-                          className="form-control border-0 shadow-sm"
-                          style={{ background: "var(--d-main-bg-color)" }}
-                          required
-                          value={formData.category}
-                          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        />
+                        <input type="text" className="form-control border-0 shadow-sm" style={{ background: "var(--d-main-bg-color)" }} required value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
                       </div>
                       <div className="col-md-3">
                         <label className="small fw-bold mb-1 text-danger">Price (Old)</label>
-                        <input
-                          type="number"
-                          className="form-control border-0 shadow-sm"
-                          style={{ background: "var(--d-main-bg-color)" }}
-                          required
-                          value={formData.price}
-                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        />
+                        <input type="number" className="form-control border-0 shadow-sm" style={{ background: "var(--d-main-bg-color)" }} required value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} />
                       </div>
                       <div className="col-md-3">
                         <label className="small fw-bold mb-1 text-success">Discount Price</label>
-                        <input
-                          type="number"
-                          className="form-control border-0 shadow-sm"
-                          style={{ background: "var(--d-main-bg-color)" }}
-                          placeholder="0"
-                          value={formData.discount_price}
-                          onChange={(e) => setFormData({ ...formData, discount_price: e.target.value })}
-                        />
+                        <input type="number" className="form-control border-0 shadow-sm" style={{ background: "var(--d-main-bg-color)" }} placeholder="0" value={formData.discount_price} onChange={(e) => setFormData({ ...formData, discount_price: e.target.value })} />
                       </div>
-                      
-                      {/* Added Description Textarea */}
                       <div className="col-12">
                         <label className="small fw-bold mb-1">Description</label>
-                        <textarea
-                          className="form-control border-0 shadow-sm"
-                          style={{ background: "var(--d-main-bg-color)", minHeight: "80px" }}
-                          placeholder="Short product details..."
-                          value={formData.description}
-                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        ></textarea>
+                        <textarea className="form-control border-0 shadow-sm" style={{ background: "var(--d-main-bg-color)", minHeight: "80px" }} placeholder="Short product details..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}></textarea>
                       </div>
-
                       <div className="col-md-4">
                         <label className="small fw-bold mb-1">Stock Quantity</label>
-                        <input
-                          type="number"
-                          className="form-control border-0 shadow-sm"
-                          style={{ background: "var(--d-main-bg-color)" }}
-                          required
-                          value={formData.stock}
-                          onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
-                        />
+                        <input type="number" className="form-control border-0 shadow-sm" style={{ background: "var(--d-main-bg-color)" }} required value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })} />
                       </div>
                       <div className="col-12">
                         <label className="small fw-bold mb-2 d-block">Available Sizes</label>
                         <div className="d-flex flex-wrap gap-2">
                           {allAvailableSizes.map((s) => (
-                            <button
-                              type="button"
-                              key={s}
-                              className={`btn btn-sm rounded-pill fw-bold transition-all px-3 ${formData.sizes.includes(s) ? "green_bg text-white" : "btn-outline-secondary"}`}
-                              onClick={() => handleSizeToggle(s)}
-                            >
-                              {s}
-                            </button>
+                            <button type="button" key={s} className={`btn btn-sm rounded-pill fw-bold transition-all px-3 ${formData.sizes.includes(s) ? "green_bg text-white" : "btn-outline-secondary"}`} onClick={() => handleSizeToggle(s)}>{s}</button>
                           ))}
                         </div>
                       </div>
@@ -334,17 +279,7 @@ const ProductList = () => {
               </div>
               <div className="modal-footer border-0 p-4">
                 <button type="button" className="btn d-link-color border-0" onClick={() => setModalMode(null)}>Discard</button>
-                <button
-                  type="submit"
-                  disabled={isFormInvalid}
-                  className="upload-btn px-5 shadow-sm"
-                  style={{
-                    borderRadius: "10px",
-                    opacity: isFormInvalid ? 0.5 : 1,
-                    cursor: isFormInvalid ? "not-allowed" : "pointer",
-                    backgroundColor: isFormInvalid ? "#ccc" : "var(--green-color)",
-                  }}
-                >
+                <button type="submit" disabled={isFormInvalid} className="upload-btn px-5 shadow-sm" style={{ borderRadius: "10px", opacity: isFormInvalid ? 0.5 : 1, cursor: isFormInvalid ? "not-allowed" : "pointer", backgroundColor: isFormInvalid ? "#ccc" : "var(--green-color)" }}>
                   {modalMode === "add" ? "Create Product" : "Save Changes"}
                 </button>
               </div>
